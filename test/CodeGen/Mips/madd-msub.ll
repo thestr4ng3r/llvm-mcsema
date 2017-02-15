@@ -7,7 +7,7 @@
 ; RUN: llc -march=mips -mcpu=mips64r6 < %s | FileCheck %s -check-prefix=ALL -check-prefix=64R6
 
 ; FIXME: The MIPS16 test should check its output
-; RUN: llc -march=mips -mcpu=mips16 < %s
+; RUN: llc -march=mips -mattr=mips16 < %s
 
 ; ALL-LABEL: madd1:
 
@@ -18,7 +18,7 @@
 ; 32-DAG:        [[m]]flo $3
 
 ; DSP-DAG:       sra $[[T0:[0-9]+]], $6, 31
-; DSP-DAG:       mtlo $[[AC:ac[0-3]+]], $6
+; DSP-DAG:       mtlo $6, $[[AC:ac[0-3]+]]
 ; DSP-DAG:       madd $[[AC]], ${{[45]}}, ${{[45]}}
 ; DSP-DAG:       mfhi $2, $[[AC]]
 ; DSP-DAG:       mflo $3, $[[AC]]
@@ -64,7 +64,7 @@ entry:
 ; 32-DAG:        [[m]]flo $3
 
 ; DSP-DAG:       addiu $[[T0:[0-9]+]], $zero, 0
-; DSP-DAG:       mtlo $[[AC:ac[0-3]+]], $6
+; DSP-DAG:       mtlo $6, $[[AC:ac[0-3]+]]
 ; DSP-DAG:       maddu $[[AC]], ${{[45]}}, ${{[45]}}
 ; DSP-DAG:       mfhi $2, $[[AC]]
 ; DSP-DAG:       mflo $3, $[[AC]]
@@ -76,26 +76,14 @@ entry:
 ; 32R6-DAG:      muhu $[[T3:[0-9]+]], ${{[45]}}, ${{[45]}}
 ; 32R6-DAG:      addu $2, $[[T3]], $[[T2]]
 
-; 64-DAG:        dsll $[[T0:[0-9]+]], $4, 32
-; 64-DAG:        dsrl $[[T1:[0-9]+]], $[[T0]], 32
-; 64-DAG:        dsll $[[T2:[0-9]+]], $5, 32
-; 64-DAG:        dsrl $[[T3:[0-9]+]], $[[T2]], 32
-; 64-DAG:        d[[m:m]]ult $[[T3]], $[[T1]]
-; 64-DAG:        [[m]]flo $[[T4:[0-9]+]]
-; 64-DAG:        dsll $[[T5:[0-9]+]], $6, 32
-; 64-DAG:        dsrl $[[T6:[0-9]+]], $[[T5]], 32
-; 64-DAG:        daddu $2, $[[T4]], $[[T6]]
+; 64-DAG:        d[[m:m]]ult $5, $4
+; 64-DAG:        [[m]]flo $[[T0:[0-9]+]]
+; 64-DAG:        daddu $2, $[[T0]], $6
 
-; 64R6-DAG:      dsll $[[T0:[0-9]+]], $4, 32
-; 64R6-DAG:      dsrl $[[T1:[0-9]+]], $[[T0]], 32
-; 64R6-DAG:      dsll $[[T2:[0-9]+]], $5, 32
-; 64R6-DAG:      dsrl $[[T3:[0-9]+]], $[[T2]], 32
-; 64R6-DAG:      dmul $[[T4:[0-9]+]], $[[T3]], $[[T1]]
-; 64R6-DAG:      dsll $[[T5:[0-9]+]], $6, 32
-; 64R6-DAG:      dsrl $[[T6:[0-9]+]], $[[T5]], 32
-; 64R6-DAG:      daddu $2, $[[T4]], $[[T6]]
+; 64R6-DAG:      dmul $[[T0:[0-9]+]], $5, $4
+; 64R6-DAG:      daddu $2, $[[T0]], $6
 
-define i64 @madd2(i32 %a, i32 %b, i32 %c) nounwind readnone {
+define i64 @madd2(i32 zeroext %a, i32 zeroext %b, i32 zeroext %c) nounwind readnone {
 entry:
   %conv = zext i32 %a to i64
   %conv2 = zext i32 %b to i64
@@ -113,8 +101,8 @@ entry:
 ; 32-DAG:        [[m]]fhi $2
 ; 32-DAG:        [[m]]flo $3
 
-; DSP-DAG:       mthi $[[AC:ac[0-3]+]], $6
-; DSP-DAG:       mtlo $[[AC]], $7
+; DSP-DAG:       mthi $6, $[[AC:ac[0-3]+]]
+; DSP-DAG:       mtlo $7, $[[AC]]
 ; DSP-DAG:       madd $[[AC]], ${{[45]}}, ${{[45]}}
 ; DSP-DAG:       mfhi $2, $[[AC]]
 ; DSP-DAG:       mflo $3, $[[AC]]
@@ -155,7 +143,7 @@ entry:
 ; 32-DAG:        [[m]]flo $3
 
 ; DSP-DAG:       sra $[[T0:[0-9]+]], $6, 31
-; DSP-DAG:       mtlo $[[AC:ac[0-3]+]], $6
+; DSP-DAG:       mtlo $6, $[[AC:ac[0-3]+]]
 ; DSP-DAG:       msub $[[AC]], ${{[45]}}, ${{[45]}}
 ; DSP-DAG:       mfhi $2, $[[AC]]
 ; DSP-DAG:       mflo $3, $[[AC]]
@@ -201,7 +189,7 @@ entry:
 ; 32-DAG:        [[m]]flo $3
 
 ; DSP-DAG:       addiu $[[T0:[0-9]+]], $zero, 0
-; DSP-DAG:       mtlo $[[AC:ac[0-3]+]], $6
+; DSP-DAG:       mtlo $6, $[[AC:ac[0-3]+]]
 ; DSP-DAG:       msubu $[[AC]], ${{[45]}}, ${{[45]}}
 ; DSP-DAG:       mfhi $2, $[[AC]]
 ; DSP-DAG:       mflo $3, $[[AC]]
@@ -214,26 +202,14 @@ entry:
 ; 32R6-DAG:      negu $2, $[[T3]]
 ; 32R6-DAG:      subu $3, $6, $[[T1]]
 
-; 64-DAG:        dsll $[[T0:[0-9]+]], $4, 32
-; 64-DAG:        dsrl $[[T1:[0-9]+]], $[[T0]], 32
-; 64-DAG:        dsll $[[T2:[0-9]+]], $5, 32
-; 64-DAG:        dsrl $[[T3:[0-9]+]], $[[T2]], 32
-; 64-DAG:        d[[m:m]]ult $[[T3]], $[[T1]]
-; 64-DAG:        [[m]]flo $[[T4:[0-9]+]]
-; 64-DAG:        dsll $[[T5:[0-9]+]], $6, 32
-; 64-DAG:        dsrl $[[T6:[0-9]+]], $[[T5]], 32
-; 64-DAG:        dsubu $2, $[[T6]], $[[T4]]
+; 64-DAG:        d[[m:m]]ult $5, $4
+; 64-DAG:        [[m]]flo $[[T0:[0-9]+]]
+; 64-DAG:        dsubu $2, $6, $[[T0]]
 
-; 64R6-DAG:      dsll $[[T0:[0-9]+]], $4, 32
-; 64R6-DAG:      dsrl $[[T1:[0-9]+]], $[[T0]], 32
-; 64R6-DAG:      dsll $[[T2:[0-9]+]], $5, 32
-; 64R6-DAG:      dsrl $[[T3:[0-9]+]], $[[T2]], 32
-; 64R6-DAG:      dmul $[[T4:[0-9]+]], $[[T3]], $[[T1]]
-; 64R6-DAG:      dsll $[[T5:[0-9]+]], $6, 32
-; 64R6-DAG:      dsrl $[[T6:[0-9]+]], $[[T5]], 32
-; 64R6-DAG:      dsubu $2, $[[T6]], $[[T4]]
+; 64R6-DAG:      dmul $[[T0:[0-9]+]], $5, $4
+; 64R6-DAG:      dsubu $2, $6, $[[T0]]
 
-define i64 @msub2(i32 %a, i32 %b, i32 %c) nounwind readnone {
+define i64 @msub2(i32 zeroext %a, i32 zeroext %b, i32 zeroext %c) nounwind readnone {
 entry:
   %conv = zext i32 %c to i64
   %conv2 = zext i32 %a to i64
@@ -253,7 +229,7 @@ entry:
 ; 32-DAG:        [[m]]flo $3
 
 ; DSP-DAG:       addiu $[[T0:[0-9]+]], $zero, 0
-; DSP-DAG:       mtlo $[[AC:ac[0-3]+]], $6
+; DSP-DAG:       mtlo $6, $[[AC:ac[0-3]+]]
 ; DSP-DAG:       msub $[[AC]], ${{[45]}}, ${{[45]}}
 ; DSP-DAG:       mfhi $2, $[[AC]]
 ; DSP-DAG:       mflo $3, $[[AC]]
